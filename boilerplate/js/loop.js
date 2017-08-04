@@ -1,6 +1,6 @@
 myApp.loop = {
 
-  maxFPS: 1,
+  maxFPS: 24,
   timestamp: 0,
   frame: 0
 

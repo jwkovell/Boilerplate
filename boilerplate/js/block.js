@@ -5,9 +5,22 @@ myApp.model.Block = function(options = {}){
   this.width = options['width'] || 0;
   this.height = options['height'] || 0;
 
+  this.slopeStart = options['slopeStart'] || 0;
+  this.slopeEnd = options['slopeEnd'] || 0;
+  this.collisionMap = [5, 4, 7, 6, 9, 2, 1, 8, 7, 6, 6, 8, 2, 3];
+
+  // Location before applying momentum.
+  this.originalX = options['displayX'] || 0;
+  this.originalY = options['displayY'] || 0;
+
+  // Visual location.
+  this.displayX = options['displayX'] || 0;
+  this.displayY = options['displayY'] || 0;
+
   this.momentum = options['momentum'] || new Maths.Vector();
 
   this.tangible = options['tangible'] || false;
+  this.pinned = options['pinned'] || false;
 
 };
 
@@ -19,58 +32,37 @@ myApp.model.Block.prototype.addMomentum = function(momentum) {
 
 myApp.model.Block.prototype.update = function() {
 
-  var self = this;
   var stage = myApp.stage;
-  var controls = myApp.controls;
-  var pixelSize = stage.pixelSize;
 
-  // Increment momentum with gravity.
-  this.momentum.addVector(new Maths.Vector(Math.PI * .5, 2));
+  // If block is not pinned in place...
+  if (this.pinned === false) {
 
-  // Update location based on momentum.
-  this.x += this.momentum.getDeltaX();
-  this.y += this.momentum.getDeltaY();
+    // Note original position.
+    this.originalX = this.x;
+    this.originalY = this.y;
 
-  // Update location based on controls.
-  if (controls.keyRight) {
-    this.x += 15;
+    // Increment momentum with gravity.
+    this.momentum.addVector(stage.gravity);
+
+    // Update location based on momentum.
+    this.x += this.momentum.getDeltaX();
+    this.y += this.momentum.getDeltaY();
+
   }
-  if (controls.keyLeft) {
-    this.x -= 15;
-  }
+
+};
+
+myApp.model.Block.prototype.snapLocation = function() {
+
+  var pixelSize = myApp.stage.pixelSize;
 
   // Snap position to pixel.
   this.x = Math.round(this.x / pixelSize) * pixelSize;
   this.y = Math.round(this.y / pixelSize) * pixelSize;
 
-  // Loop through tiles.
-  stage.tiles.forEach(function(tile){
+}
 
-    // check for horizontal collision with tile.
-    if (
-      self.x > tile.x - self.width &&
-      self.x < tile.x + self.width
-    ) {
-
-      // check for vertical collision with tile.
-      if (
-        self.y > tile.y - self.height &&
-        self.y < tile.y + self.height
-      ) {
-
-        self.momentum.magnitude = 0;
-
-        self.y = tile.y - self.height;
-        //self.x = tile.x - self.width;
-
-      }
-
-    }
-
-  });
-
-
-};
+myApp.model.Block.prototype.checkCollisions = function() {};
 
 myApp.model.Block.prototype.draw = function() {
 
@@ -81,11 +73,27 @@ myApp.model.Block.prototype.draw = function() {
   stage.reset();
 
   // Position.
-  ctx.translate(this.x, this.y);
+  ctx.translate(this.x - stage.offsetX, this.y - stage.offsetY);
 
   ctx.beginPath();
   ctx.rect(0, 0, this.width, this.height);
   ctx.stroke();
   ctx.closePath();
+
+  ctx.beginPath();
+  ctx.arc(0, 0, 2, 0, Math.PI * 2)
+  ctx.fill();
+  ctx.closePath();
+
+  if (this.slopeStart + this.slopeEnd) {
+    ctx.beginPath();
+    ctx.moveTo(0, this.slopeStart);
+    ctx.lineTo(this.width, this.slopeEnd);
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  ctx.font = '12px Arial';
+  ctx.fillText(this.x + ', ' + this.y, 2, 14);
 
 };

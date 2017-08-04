@@ -16,6 +16,7 @@ myApp.controls = {
 
   keyLeft: false,
   keyRight: false,
+  keySpace: false,
 
 };
 
@@ -83,6 +84,10 @@ window.addEventListener("keydown", function(event){
     controls.keyRight = true;
   }
 
+  if (keyCode == 32) {
+    controls.keySpace = true;
+  }
+
 });
 
 window.addEventListener("keyup", function(event){
@@ -96,6 +101,10 @@ window.addEventListener("keyup", function(event){
 
   if (keyCode == 39) {
     controls.keyRight = false;
+  }
+
+  if (keyCode == 32) {
+    controls.keySpace = false;
   }
 
 });
